@@ -200,3 +200,171 @@ pytest tests/ -v --cov=agent
 ## License
 
 MIT — see [LICENSE](LICENSE). Built by the Helping Hands Team.
+
+
+---
+
+## 🚀 Quick Start - Deployment
+
+### Prerequisites
+
+- Docker & Docker Compose installed
+- xAI Grok API key ([Get one here](https://console.x.ai/))
+
+### One-Command Deploy
+
+```bash
+# Clone the repository
+git clone https://github.com/helpinghands3631-bot/manus-agent-core.git
+cd manus-agent-core
+
+# Run the deployment script
+chmod +x deploy.sh
+./deploy.sh
+```
+
+The script will:
+1. ✅ Check Docker installation
+2. ✅ Create `.env` from template
+3. ✅ Validate your Grok API key
+4. ✅ Build and start the agent in Docker
+
+### Manual Setup
+
+1. **Configure Environment**
+
+```bash
+cp .env.example .env
+# Edit .env and add your GROQ_API_KEY
+```
+
+2. **Start with Docker Compose**
+
+```bash
+docker-compose up -d
+```
+
+3. **View Logs**
+
+```bash
+docker-compose logs -f
+```
+
+### Running Locally (Without Docker)
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Set environment variable
+export GROQ_API_KEY='your_grok_api_key_here'
+
+# Run example
+python examples/basic_usage.py
+```
+
+---
+
+## 📖 Usage Examples
+
+See `examples/basic_usage.py` for complete working examples.
+
+**Simple task execution:**
+
+```python
+import asyncio
+from agent.core import BaseAgent
+from llm.groq import GroqLLM
+
+async def main():
+    llm = GroqLLM(api_key="your_key_here")
+    agent = BaseAgent(llm=llm)
+    
+    result = await agent.run("Calculate 15 * 8 and explain the result")
+    print(result)
+
+asyncio.run(main())
+```
+
+**With custom tools:**
+
+```python
+from tools.base import BaseTool
+
+class MyTool(BaseTool):
+    name = "my_tool"
+    description = "What this tool does"
+    
+    async def execute(self, input_data: str) -> dict:
+        return {"success": True, "data": "result"}
+
+agent.register_tool(MyTool())
+```
+
+---
+
+## 🛠️ Production Deployment
+
+### Environment Variables
+
+**Required:**
+- `GROQ_API_KEY` - Your xAI Grok API key
+
+**Optional:**
+- `AGENT_MAX_STEPS=25` - Max reasoning steps
+- `AGENT_MEMORY_WINDOW=10` - Context window size
+- `LLM_MODEL=mixtral-8x7b-32768` - Model to use
+- `TOOL_TIMEOUT_SECS=30` - Tool execution timeout
+
+### Scaling
+
+The agent is stateless and can be horizontally scaled:
+
+```yaml
+# docker-compose.yml
+services:
+  manus-agent:
+    image: manus-agent-core
+    deploy:
+      replicas: 3
+```
+
+### Monitoring
+
+Agent emits structured JSON logs:
+
+```bash
+# Follow logs
+docker-compose logs -f | grep "agent_step"
+```
+
+Logs include:
+- Step-by-step reasoning traces
+- Tool execution results
+- Token usage stats
+- Error details
+
+---
+
+## 🏗️ Architecture
+
+```
+manus-agent-core/
+├── agent/          # Core ReAct agent logic
+├── llm/            # xAI Grok integration
+├── tools/          # Plug-and-play tool system
+├── memory/         # Short & long-term memory
+├── events/         # Event bus for observability
+├── utils/          # Logging utilities
+└── examples/       # Usage examples
+```
+
+**Key Components:**
+
+- **ReAct Loop** (`agent/core.py`) - Reason → Act → Observe pattern
+- **Grok Client** (`llm/groq.py`) - Streaming + function calling
+- **Tool Registry** (`tools/registry.py`) - Dynamic tool registration
+- **Memory System** (`memory/`) - Context management
+- **Event Bus** (`events/bus.py`) - Lifecycle hooks
+
+---
