@@ -1,0 +1,17 @@
+# Manus Agent Core Dependencies
+
+# LLM Integration
+groq>=0.4.0
+openai>=1.0.0
+
+# HTTP/Async
+httpx>=0.25.0
+
+# Python 3.11+ type hints support
+typing-extensions>=4.8.0
+
+# Optional: Development tools
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+black>=23.0.0
+mypy>=1.6.0
