@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:chore: add docker-compose for easy deployment
+
+  manus-agent:
+    build: .
+    container_name: manus-agent-core
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - manus-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  manus-network:
+    driver: bridge
+
+volumes:
+  data:
+  logs:
