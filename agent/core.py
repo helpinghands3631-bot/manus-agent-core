@@ -19,6 +19,9 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
+import opik
+from opik.opik_context import update_current_trace
+
 from config import AgentConfig
 from events.bus import EventBus
 from exceptions import AgentMaxStepsError, AgentParseError, ToolNotFoundError
@@ -119,9 +122,13 @@ class BaseAgent:
             "tools": list(tool_registry.names()),
         })
 
+    @opik.track(name="AgentRun", capture_input=True, capture_output=True)
     async def run(self, goal: str, context: Optional[Dict] = None) -> AgentResult:
         """
         Run the ReAct loop to completion.
+
+        The @opik.track decorator creates a parent trace in Opik.
+        All LiteLLM calls inside this method will be nested as child spans.
 
         Args:
             goal:    The natural-language goal to achieve.
@@ -131,6 +138,15 @@ class BaseAgent:
             AgentResult with output, trace, token counts, timings.
         """
         start = time.monotonic()
+
+        # Tag the trace with metadata for filtering in the Opik UI
+        update_current_trace(
+            tags=["react-loop", self.config.llm_provider if hasattr(self.config, 'llm_provider') else "unknown"],
+            metadata={
+                "model": self.config.model,
+                "max_steps": self.config.max_steps,
+            },
+        )
         steps: List[AgentStep] = []
         total_tokens = 0
 

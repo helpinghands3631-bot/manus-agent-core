@@ -5,7 +5,10 @@ Demonstrates:
 - Registering custom tools
 - Running ReAct loop for autonomous task execution
 - Using memory and event system
+- Automatic Opik tracing of all LLM calls and agent runs
 """
+
+import observability  # noqa: F401 — bootstraps Opik + LiteLLM callbacks
 
 import asyncio
 import os
